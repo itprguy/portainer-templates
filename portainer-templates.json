@@ -3,137 +3,19 @@
   "templates": [
     {
       "type": 3,
-      "title": "Generic App Behind Traefik",
-      "name": "generic-traefik-app",
-      "description": "Reusable stack template for a single web app published through Traefik on the external proxy network.",
-      "categories": ["Generic", "Web", "Traefik"],
-      "platform": "linux",
-      "logo": "https://raw.githubusercontent.com/portainer/portainer/develop/app/assets/images/portainer.svg",
-      "env": [
-        {
-          "name": "APP_NAME",
-          "label": "App name",
-          "default": "myapp"
-        },
-        {
-          "name": "APP_IMAGE",
-          "label": "Docker image",
-          "default": "nginx:alpine"
-        },
-        {
-          "name": "APP_HOSTNAME",
-          "label": "Public hostname",
-          "default": "myapp.karimar.lat"
-        },
-        {
-          "name": "APP_INTERNAL_PORT",
-          "label": "Internal container port",
-          "default": "80"
-        },
-        {
-          "name": "APP_TZ",
-          "label": "Timezone",
-          "default": "America/Puerto_Rico"
-        }
-      ],
-      "stackfile": "services:\n  {{APP_NAME}}:\n    image: {{APP_IMAGE}}\n    container_name: {{APP_NAME}}\n    restart: unless-stopped\n    networks:\n      - proxy\n    environment:\n      TZ: {{APP_TZ}}\n    volumes:\n      - {{APP_NAME}}_data:/data\n    labels:\n      - traefik.enable=true\n      - traefik.docker.network=proxy\n      - traefik.http.routers.{{APP_NAME}}.rule=Host(`{{APP_HOSTNAME}}`)\n      - traefik.http.routers.{{APP_NAME}}.entrypoints=web\n      - traefik.http.services.{{APP_NAME}}.loadbalancer.server.port={{APP_INTERNAL_PORT}}\n\nvolumes:\n  {{APP_NAME}}_data:\n\nnetworks:\n  proxy:\n    external: true\n"
-    },
-    {
-      "type": 3,
-      "title": "Generic App Plus MariaDB Behind Traefik",
-      "name": "generic-traefik-mariadb",
-      "description": "Reusable stack template for an app with a MariaDB backend and Traefik exposure.",
-      "categories": ["Generic", "Database", "MariaDB", "Traefik"],
-      "platform": "linux",
-      "logo": "https://raw.githubusercontent.com/portainer/portainer/develop/app/assets/images/portainer.svg",
-      "env": [
-        {
-          "name": "APP_NAME",
-          "label": "App name",
-          "default": "myapp"
-        },
-        {
-          "name": "APP_IMAGE",
-          "label": "Docker image",
-          "default": "wordpress:php8.2-apache"
-        },
-        {
-          "name": "APP_HOSTNAME",
-          "label": "Public hostname",
-          "default": "myapp.karimar.lat"
-        },
-        {
-          "name": "APP_INTERNAL_PORT",
-          "label": "Internal container port",
-          "default": "80"
-        },
-        {
-          "name": "APP_DB_NAME",
-          "label": "Database name",
-          "default": "appdb"
-        },
-        {
-          "name": "APP_DB_USER",
-          "label": "Database user",
-          "default": "appuser"
-        },
-        {
-          "name": "APP_DB_PASSWORD",
-          "label": "Database password",
-          "default": "ChangeMe123!"
-        },
-        {
-          "name": "APP_DB_ROOT_PASSWORD",
-          "label": "MariaDB root password",
-          "default": "ChangeMeRoot123!"
-        },
-        {
-          "name": "APP_TZ",
-          "label": "Timezone",
-          "default": "America/Puerto_Rico"
-        }
-      ],
-      "stackfile": "services:\n  {{APP_NAME}}-db:\n    image: mariadb:11\n    container_name: {{APP_NAME}}-db\n    restart: unless-stopped\n    environment:\n      MARIADB_DATABASE: {{APP_DB_NAME}}\n      MARIADB_USER: {{APP_DB_USER}}\n      MARIADB_PASSWORD: {{APP_DB_PASSWORD}}\n      MARIADB_ROOT_PASSWORD: {{APP_DB_ROOT_PASSWORD}}\n      MARIADB_USER_HOST: \"%\"\n    volumes:\n      - {{APP_NAME}}_db_data:/var/lib/mysql\n    networks:\n      - internal\n\n  {{APP_NAME}}:\n    image: {{APP_IMAGE}}\n    container_name: {{APP_NAME}}\n    restart: unless-stopped\n    depends_on:\n      - {{APP_NAME}}-db\n    networks:\n      - internal\n      - proxy\n    environment:\n      TZ: {{APP_TZ}}\n      WORDPRESS_DB_HOST: {{APP_NAME}}-db:3306\n      WORDPRESS_DB_NAME: {{APP_DB_NAME}}\n      WORDPRESS_DB_USER: {{APP_DB_USER}}\n      WORDPRESS_DB_PASSWORD: {{APP_DB_PASSWORD}}\n    volumes:\n      - {{APP_NAME}}_app_data:/var/www/html\n    labels:\n      - traefik.enable=true\n      - traefik.docker.network=proxy\n      - traefik.http.routers.{{APP_NAME}}.rule=Host(`{{APP_HOSTNAME}}`)\n      - traefik.http.routers.{{APP_NAME}}.entrypoints=web\n      - traefik.http.services.{{APP_NAME}}.loadbalancer.server.port={{APP_INTERNAL_PORT}}\n\nvolumes:\n  {{APP_NAME}}_db_data:\n  {{APP_NAME}}_app_data:\n\nnetworks:\n  internal:\n  proxy:\n    external: true\n"
-    },
-    {
-      "type": 3,
-      "title": "Static Site Behind Traefik",
-      "name": "static-site-traefik",
-      "description": "Reusable stack template for a static site or simple nginx container behind Traefik.",
-      "categories": ["Static", "Nginx", "Traefik"],
-      "platform": "linux",
-      "logo": "https://raw.githubusercontent.com/portainer/portainer/develop/app/assets/images/portainer.svg",
-      "env": [
-        {
-          "name": "APP_NAME",
-          "label": "App name",
-          "default": "static-site"
-        },
-        {
-          "name": "APP_HOSTNAME",
-          "label": "Public hostname",
-          "default": "site.karimar.lat"
-        },
-        {
-          "name": "APP_TZ",
-          "label": "Timezone",
-          "default": "America/Puerto_Rico"
-        }
-      ],
-      "stackfile": "services:\n  {{APP_NAME}}:\n    image: nginx:alpine\n    container_name: {{APP_NAME}}\n    restart: unless-stopped\n    networks:\n      - proxy\n    environment:\n      TZ: {{APP_TZ}}\n    volumes:\n      - {{APP_NAME}}_html:/usr/share/nginx/html\n    labels:\n      - traefik.enable=true\n      - traefik.docker.network=proxy\n      - traefik.http.routers.{{APP_NAME}}.rule=Host(`{{APP_HOSTNAME}}`)\n      - traefik.http.routers.{{APP_NAME}}.entrypoints=web\n      - traefik.http.services.{{APP_NAME}}.loadbalancer.server.port=80\n\nvolumes:\n  {{APP_NAME}}_html:\n\nnetworks:\n  proxy:\n    external: true\n"
-    },
-    {
-      "type": 3,
       "title": "Calibre Behind Traefik",
       "name": "calibre-traefik",
-      "description": "Calibre published through Traefik with separate domain and subdomain inputs.",
-      "categories": ["Books", "Calibre", "Traefik"],
+      "description": "Calibre behind Traefik with a shared library volume.",
+      "categories": [
+        "LinuxServer",
+        "Traefik"
+      ],
       "platform": "linux",
       "logo": "https://raw.githubusercontent.com/linuxserver/docker-templates/master/linuxserver.io/img/calibre-logo.png",
       "env": [
         {
           "name": "APP_NAME",
-          "label": "Container name",
+          "label": "App name",
           "default": "calibre"
         },
         {
@@ -144,7 +26,7 @@
         {
           "name": "APP_DOMAIN",
           "label": "Domain",
-          "default": "karimar.lat"
+          "default": "example.com"
         },
         {
           "name": "APP_TZ",
@@ -162,41 +44,49 @@
           "default": "1000"
         },
         {
-          "name": "APP_USER",
+          "name": "CUSTOM_USER",
           "label": "Calibre username",
           "default": "admin"
         },
         {
-          "name": "APP_PASSWORD",
+          "name": "PASSWORD",
           "label": "Calibre password",
           "default": "ChangeMe123!"
+        },
+        {
+          "name": "CLI_ARGS",
+          "label": "Optionally pass cli start arguments to calibre.",
+          "default": ""
         }
       ],
-      "stackfile": "services:\n  {{APP_NAME}}:\n    image: lscr.io/linuxserver/calibre:latest\n    container_name: {{APP_NAME}}\n    restart: unless-stopped\n    environment:\n      PUID: {{APP_PUID}}\n      PGID: {{APP_PGID}}\n      TZ: {{APP_TZ}}\n      CUSTOM_USER: {{APP_USER}}\n      PASSWORD: {{APP_PASSWORD}}\n    volumes:\n      - {{APP_NAME}}_config:/config\n      - {{APP_NAME}}_library:/books\n    networks:\n      - proxy\n    labels:\n      - traefik.enable=true\n      - traefik.docker.network=proxy\n      - traefik.http.routers.{{APP_NAME}}.rule=Host(`{{APP_SUBDOMAIN}}.{{APP_DOMAIN}}`)\n      - traefik.http.routers.{{APP_NAME}}.entrypoints=web\n      - traefik.http.services.{{APP_NAME}}.loadbalancer.server.port=8080\n\nvolumes:\n  {{APP_NAME}}_config:\n  {{APP_NAME}}_library:\n\nnetworks:\n  proxy:\n    external: true\n"
+      "stackfile": "services:\n  {{APP_NAME}}:\n    image: lscr.io/linuxserver/calibre:latest\n    container_name: {{APP_NAME}}\n    restart: unless-stopped\n    environment:\n      TZ: {{APP_TZ}}\n      PUID: {{APP_PUID}}\n      PGID: {{APP_PGID}}\n      CUSTOM_USER: {{CUSTOM_USER}}\n      PASSWORD: {{PASSWORD}}\n      CLI_ARGS: {{CLI_ARGS}}\n    volumes:\n      - {{APP_NAME}}_config:/config\n      - {{APP_NAME}}_library:/books\n    networks:\n      - proxy\n    labels:\n      - traefik.enable=true\n      - traefik.docker.network=proxy\n      - traefik.http.routers.{{APP_NAME}}.rule=Host(`{{APP_SUBDOMAIN}}.{{APP_DOMAIN}}`)\n      - traefik.http.routers.{{APP_NAME}}.entrypoints=web\n      - traefik.http.services.{{APP_NAME}}.loadbalancer.server.port=8080\n\nvolumes:\n  {{APP_NAME}}_config:\n  {{APP_NAME}}_library:\n\nnetworks:\n  proxy:\n    external: true\n"
     },
     {
       "type": 3,
       "title": "Calibre-Web Behind Traefik",
-      "name": "calibreweb-traefik",
-      "description": "Calibre-Web published through Traefik with separate domain and subdomain inputs.",
-      "categories": ["Books", "Calibre-Web", "Traefik"],
+      "name": "calibre-web-traefik",
+      "description": "Calibre-Web behind Traefik using an existing Calibre library.",
+      "categories": [
+        "LinuxServer",
+        "Traefik"
+      ],
       "platform": "linux",
-      "logo": "https://raw.githubusercontent.com/linuxserver/docker-templates/master/linuxserver.io/img/calibre-web-logo.png",
+      "logo": "https://raw.githubusercontent.com/linuxserver/docker-templates/master/linuxserver.io/img/calibre-web-icon.png",
       "env": [
         {
           "name": "APP_NAME",
-          "label": "Container name",
+          "label": "App name",
           "default": "calibre-web"
         },
         {
           "name": "APP_SUBDOMAIN",
           "label": "Subdomain",
-          "default": "calibreweb"
+          "default": "calibre-web"
         },
         {
           "name": "APP_DOMAIN",
           "label": "Domain",
-          "default": "karimar.lat"
+          "default": "example.com"
         },
         {
           "name": "APP_TZ",
@@ -215,35 +105,238 @@
         },
         {
           "name": "LIBRARY_VOLUME",
-          "label": "Library volume name",
+          "label": "Existing library volume name",
           "default": "calibre_library"
+        },
+        {
+          "name": "DOCKER_MODS",
+          "label": "#optional & **x86-64 only** Adds the ability to perform ebook conversion",
+          "default": "linuxserver/mods:universal-calibre"
+        },
+        {
+          "name": "OAUTHLIB_RELAX_TOKEN_SCOPE",
+          "label": "Optionally set this to allow Google OAUTH to work",
+          "default": "1"
         }
       ],
-      "stackfile": "services:\n  {{APP_NAME}}:\n    image: lscr.io/linuxserver/calibre-web:latest\n    container_name: {{APP_NAME}}\n    restart: unless-stopped\n    environment:\n      PUID: {{APP_PUID}}\n      PGID: {{APP_PGID}}\n      TZ: {{APP_TZ}}\n    volumes:\n      - {{APP_NAME}}_config:/config\n      - {{LIBRARY_VOLUME}}:/books\n    networks:\n      - proxy\n    labels:\n      - traefik.enable=true\n      - traefik.docker.network=proxy\n      - traefik.http.routers.{{APP_NAME}}.rule=Host(`{{APP_SUBDOMAIN}}.{{APP_DOMAIN}}`)\n      - traefik.http.routers.{{APP_NAME}}.entrypoints=web\n      - traefik.http.services.{{APP_NAME}}.loadbalancer.server.port=8083\n\nvolumes:\n  {{APP_NAME}}_config:\n  {{LIBRARY_VOLUME}}:\n    external: true\n\nnetworks:\n  proxy:\n    external: true\n"
+      "stackfile": "services:\n  {{APP_NAME}}:\n    image: lscr.io/linuxserver/calibre-web:latest\n    container_name: {{APP_NAME}}\n    restart: unless-stopped\n    environment:\n      TZ: {{APP_TZ}}\n      PUID: {{APP_PUID}}\n      PGID: {{APP_PGID}}\n      DOCKER_MODS: {{DOCKER_MODS}}\n      OAUTHLIB_RELAX_TOKEN_SCOPE: {{OAUTHLIB_RELAX_TOKEN_SCOPE}}\n    volumes:\n      - {{APP_NAME}}_config:/config\n      - {{LIBRARY_VOLUME}}:/books\n    networks:\n      - proxy\n    labels:\n      - traefik.enable=true\n      - traefik.docker.network=proxy\n      - traefik.http.routers.{{APP_NAME}}.rule=Host(`{{APP_SUBDOMAIN}}.{{APP_DOMAIN}}`)\n      - traefik.http.routers.{{APP_NAME}}.entrypoints=web\n      - traefik.http.services.{{APP_NAME}}.loadbalancer.server.port=8083\n\nvolumes:\n  {{APP_NAME}}_config:\n  {{LIBRARY_VOLUME}}:\n    external: true\n\nnetworks:\n  proxy:\n    external: true\n"
     },
     {
       "type": 3,
-      "title": "Ghost Behind Traefik",
-      "name": "ghost-traefik",
-      "description": "Ghost blog behind Traefik with separate subdomain and domain inputs. Uses SQLite for simple standalone deployment.",
-      "categories": ["Ghost", "Blog", "CMS", "Traefik"],
+      "title": "Changedetection.io Behind Traefik",
+      "name": "changedetection.io-traefik",
+      "description": "changedetection.io provides free, open-source web page monitoring, notification and change detection.",
+      "categories": [
+        "LinuxServer",
+        "Traefik"
+      ],
       "platform": "linux",
-      "logo": "https://ghost.org/images/logos/ghost-logo-orb.png",
+      "logo": "https://github.com/linuxserver/docker-templates/raw/master/linuxserver.io/img/changedetection-icon.png",
       "env": [
         {
           "name": "APP_NAME",
-          "label": "Container name",
-          "default": "ghost"
+          "label": "App name",
+          "default": "changedetection.io"
         },
         {
           "name": "APP_SUBDOMAIN",
           "label": "Subdomain",
-          "default": "ghost"
+          "default": "changedetection.io"
         },
         {
           "name": "APP_DOMAIN",
           "label": "Domain",
-          "default": "karimar.lat"
+          "default": "example.com"
+        },
+        {
+          "name": "APP_TZ",
+          "label": "Timezone",
+          "default": "America/Puerto_Rico"
+        },
+        {
+          "name": "BASE_URL",
+          "label": "Specify the full URL (including protocol) when running behind a reverse proxy",
+          "default": ""
+        },
+        {
+          "name": "PLAYWRIGHT_DRIVER_URL",
+          "label": "Specify the full URL to your chrome driver instance. See the [wiki](https://github.com/dgtlmoon/changedetection.io/wiki/Playwright-content-fetcher) for details.",
+          "default": ""
+        }
+      ],
+      "stackfile": "services:\n  {{APP_NAME}}:\n    image: lscr.io/linuxserver/changedetection.io:latest\n    container_name: {{APP_NAME}}\n    restart: unless-stopped\n    environment:\n      TZ: {{APP_TZ}}\n      BASE_URL: {{BASE_URL}}\n      PLAYWRIGHT_DRIVER_URL: {{PLAYWRIGHT_DRIVER_URL}}\n    volumes:\n      - {{APP_NAME}}_config:/config\n    networks:\n      - proxy\n    labels:\n      - traefik.enable=true\n      - traefik.docker.network=proxy\n      - traefik.http.routers.{{APP_NAME}}.rule=Host(`{{APP_SUBDOMAIN}}.{{APP_DOMAIN}}`)\n      - traefik.http.routers.{{APP_NAME}}.entrypoints=web\n      - traefik.http.services.{{APP_NAME}}.loadbalancer.server.port=5000\n\nvolumes:\n  {{APP_NAME}}_config:\n\nnetworks:\n  proxy:\n    external: true\n"
+    },
+    {
+      "type": 3,
+      "title": "Code Server Behind Traefik",
+      "name": "code-server-traefik",
+      "description": "code-server is VS Code running on a remote server, accessible through the browser. - Code on your Chromebook, tablet, and laptop with a consistent dev environment. - If you have a Windows or Mac workstation, more easily develop for Linux. - Take advantage of large cloud servers to speed up tests, compilations, downloads, and more. - Preserve battery life when you're on the go. - All intensive computation runs on your server. - You're no longer running excess instances of Chrome.",
+      "categories": [
+        "LinuxServer",
+        "Traefik"
+      ],
+      "platform": "linux",
+      "logo": "https://raw.githubusercontent.com/linuxserver/docker-templates/master/linuxserver.io/img/code-server-banner.png",
+      "env": [
+        {
+          "name": "APP_NAME",
+          "label": "App name",
+          "default": "code-server"
+        },
+        {
+          "name": "APP_SUBDOMAIN",
+          "label": "Subdomain",
+          "default": "code-server"
+        },
+        {
+          "name": "APP_DOMAIN",
+          "label": "Domain",
+          "default": "example.com"
+        },
+        {
+          "name": "APP_TZ",
+          "label": "Timezone",
+          "default": "America/Puerto_Rico"
+        },
+        {
+          "name": "HASHED_PASSWORD",
+          "label": "Optional web gui password, overrides `PASSWORD`, instructions on how to create it is below.",
+          "default": ""
+        },
+        {
+          "name": "SUDO_PASSWORD",
+          "label": "If this optional variable is set, user will have sudo access in the code-server terminal with the specified password.",
+          "default": "password"
+        },
+        {
+          "name": "SUDO_PASSWORD_HASH",
+          "label": "Optionally set sudo password via hash (takes priority over `SUDO_PASSWORD` var). Format is `$type$salt$hashed`.",
+          "default": ""
+        },
+        {
+          "name": "PROXY_DOMAIN",
+          "label": "If this optional variable is set, this domain will be proxied for subdomain proxying. See [Documentation](https://github.com/coder/code-server/blob/main/docs/guide.md#using-a-subdomain)",
+          "default": "code-server.my.domain"
+        },
+        {
+          "name": "DEFAULT_WORKSPACE",
+          "label": "If this optional variable is set, code-server will open this directory by default",
+          "default": "/config/workspace"
+        },
+        {
+          "name": "PWA_APPNAME",
+          "label": "If this optional variable is set, the PWA app will the specified name.",
+          "default": "code-server"
+        }
+      ],
+      "stackfile": "services:\n  {{APP_NAME}}:\n    image: lscr.io/linuxserver/code-server:latest\n    container_name: {{APP_NAME}}\n    restart: unless-stopped\n    environment:\n      TZ: {{APP_TZ}}\n      HASHED_PASSWORD: {{HASHED_PASSWORD}}\n      SUDO_PASSWORD: {{SUDO_PASSWORD}}\n      SUDO_PASSWORD_HASH: {{SUDO_PASSWORD_HASH}}\n      PROXY_DOMAIN: {{PROXY_DOMAIN}}\n      DEFAULT_WORKSPACE: {{DEFAULT_WORKSPACE}}\n      PWA_APPNAME: {{PWA_APPNAME}}\n    volumes:\n      - {{APP_NAME}}_config:/config\n    networks:\n      - proxy\n    labels:\n      - traefik.enable=true\n      - traefik.docker.network=proxy\n      - traefik.http.routers.{{APP_NAME}}.rule=Host(`{{APP_SUBDOMAIN}}.{{APP_DOMAIN}}`)\n      - traefik.http.routers.{{APP_NAME}}.entrypoints=web\n      - traefik.http.services.{{APP_NAME}}.loadbalancer.server.port=8443\n\nvolumes:\n  {{APP_NAME}}_config:\n\nnetworks:\n  proxy:\n    external: true\n"
+    },
+    {
+      "type": 3,
+      "title": "Heimdall Behind Traefik",
+      "name": "heimdall-traefik",
+      "description": "heimdall is a way to organise all those links to your most used web sites and web applications in a simple way.  Simplicity is the key to Heimdall.  Why not use it as your browser start page? It even has the ability to include a search bar using either Google, Bing or DuckDuckGo.",
+      "categories": [
+        "LinuxServer",
+        "Traefik"
+      ],
+      "platform": "linux",
+      "logo": "https://raw.githubusercontent.com/linuxserver/docker-templates/master/linuxserver.io/img/heimdall-banner.png",
+      "env": [
+        {
+          "name": "APP_NAME",
+          "label": "App name",
+          "default": "heimdall"
+        },
+        {
+          "name": "APP_SUBDOMAIN",
+          "label": "Subdomain",
+          "default": "heimdall"
+        },
+        {
+          "name": "APP_DOMAIN",
+          "label": "Domain",
+          "default": "example.com"
+        },
+        {
+          "name": "APP_TZ",
+          "label": "Timezone",
+          "default": "America/Puerto_Rico"
+        },
+        {
+          "name": "ALLOW_INTERNAL_REQUESTS",
+          "label": "By default, Heimdall blocks lookup requests to private or reserved IP addresses, if your instance is not exposed to the internet, or is behind some level of authentication, you can set this to `true` to allow requests to private IP addresses.",
+          "default": "false"
+        }
+      ],
+      "stackfile": "services:\n  {{APP_NAME}}:\n    image: lscr.io/linuxserver/heimdall:latest\n    container_name: {{APP_NAME}}\n    restart: unless-stopped\n    environment:\n      TZ: {{APP_TZ}}\n      ALLOW_INTERNAL_REQUESTS: {{ALLOW_INTERNAL_REQUESTS}}\n    volumes:\n      - {{APP_NAME}}_config:/config\n    networks:\n      - proxy\n    labels:\n      - traefik.enable=true\n      - traefik.docker.network=proxy\n      - traefik.http.routers.{{APP_NAME}}.rule=Host(`{{APP_SUBDOMAIN}}.{{APP_DOMAIN}}`)\n      - traefik.http.routers.{{APP_NAME}}.entrypoints=web\n      - traefik.http.services.{{APP_NAME}}.loadbalancer.server.port=80\n\nvolumes:\n  {{APP_NAME}}_config:\n\nnetworks:\n  proxy:\n    external: true\n"
+    },
+    {
+      "type": 3,
+      "title": "Jellyfin Behind Traefik",
+      "name": "jellyfin-traefik",
+      "description": "jellyfin is a Free Software Media System that puts you in control of managing and streaming your media. It is an alternative to the proprietary Emby and Plex, to provide media from a dedicated server to end-user devices via multiple apps. Jellyfin is descended from Emby's 3.5.2 release and ported to the .NET Core framework to enable full cross-platform support. There are no strings attached, no premium licenses or features, and no hidden agendas: just a team who want to build something better and work together to achieve it.",
+      "categories": [
+        "LinuxServer",
+        "Traefik"
+      ],
+      "platform": "linux",
+      "logo": "https://raw.githubusercontent.com/linuxserver/docker-templates/master/linuxserver.io/img/jellyfin-logo.png",
+      "env": [
+        {
+          "name": "APP_NAME",
+          "label": "App name",
+          "default": "jellyfin"
+        },
+        {
+          "name": "APP_SUBDOMAIN",
+          "label": "Subdomain",
+          "default": "jellyfin"
+        },
+        {
+          "name": "APP_DOMAIN",
+          "label": "Domain",
+          "default": "example.com"
+        },
+        {
+          "name": "APP_TZ",
+          "label": "Timezone",
+          "default": "America/Puerto_Rico"
+        },
+        {
+          "name": "JELLYFIN_PublishedServerUrl",
+          "label": "Set the autodiscovery response domain or IP address, include http(s)://.",
+          "default": "http://192.168.0.5"
+        }
+      ],
+      "stackfile": "services:\n  {{APP_NAME}}:\n    image: lscr.io/linuxserver/jellyfin:latest\n    container_name: {{APP_NAME}}\n    restart: unless-stopped\n    environment:\n      TZ: {{APP_TZ}}\n      JELLYFIN_PublishedServerUrl: {{JELLYFIN_PublishedServerUrl}}\n    volumes:\n      - {{APP_NAME}}_config:/config\n      - {{APP_NAME}}_data_tvshows:/data/tvshows\n      - {{APP_NAME}}_data_movies:/data/movies\n    networks:\n      - proxy\n    labels:\n      - traefik.enable=true\n      - traefik.docker.network=proxy\n      - traefik.http.routers.{{APP_NAME}}.rule=Host(`{{APP_SUBDOMAIN}}.{{APP_DOMAIN}}`)\n      - traefik.http.routers.{{APP_NAME}}.entrypoints=web\n      - traefik.http.services.{{APP_NAME}}.loadbalancer.server.port=8096\n\nvolumes:\n  {{APP_NAME}}_config:\n  {{APP_NAME}}_data_tvshows:\n  {{APP_NAME}}_data_movies:\n\nnetworks:\n  proxy:\n    external: true\n"
+    },
+    {
+      "type": 3,
+      "title": "Kavita Behind Traefik",
+      "name": "kavita-traefik",
+      "description": "kavita is a fast, feature rich, cross platform reading server. Built with a focus for being a full solution for all your reading needs. Setup your own server and share your reading collection with your friends and family!",
+      "categories": [
+        "LinuxServer",
+        "Traefik"
+      ],
+      "platform": "linux",
+      "logo": "https://raw.githubusercontent.com/linuxserver/docker-templates/master/linuxserver.io/img/kavita-logo.png",
+      "env": [
+        {
+          "name": "APP_NAME",
+          "label": "App name",
+          "default": "kavita"
+        },
+        {
+          "name": "APP_SUBDOMAIN",
+          "label": "Subdomain",
+          "default": "kavita"
+        },
+        {
+          "name": "APP_DOMAIN",
+          "label": "Domain",
+          "default": "example.com"
         },
         {
           "name": "APP_TZ",
@@ -251,7 +344,277 @@
           "default": "America/Puerto_Rico"
         }
       ],
-      "stackfile": "services:\n  {{APP_NAME}}:\n    image: ghost:latest\n    container_name: {{APP_NAME}}\n    restart: unless-stopped\n    environment:\n      TZ: {{APP_TZ}}\n      url: https://{{APP_SUBDOMAIN}}.{{APP_DOMAIN}}\n    volumes:\n      - {{APP_NAME}}_data:/var/lib/ghost/content\n    networks:\n      - proxy\n    labels:\n      - traefik.enable=true\n      - traefik.docker.network=proxy\n      - traefik.http.routers.{{APP_NAME}}.rule=Host(`{{APP_SUBDOMAIN}}.{{APP_DOMAIN}}`)\n      - traefik.http.routers.{{APP_NAME}}.entrypoints=web\n      - traefik.http.services.{{APP_NAME}}.loadbalancer.server.port=2368\n\nvolumes:\n  {{APP_NAME}}_data:\n\nnetworks:\n  proxy:\n    external: true\n"
+      "stackfile": "services:\n  {{APP_NAME}}:\n    image: lscr.io/linuxserver/kavita:latest\n    container_name: {{APP_NAME}}\n    restart: unless-stopped\n    environment:\n      TZ: {{APP_TZ}}\n    volumes:\n      - {{APP_NAME}}_config:/config\n      - {{APP_NAME}}_data:/data\n    networks:\n      - proxy\n    labels:\n      - traefik.enable=true\n      - traefik.docker.network=proxy\n      - traefik.http.routers.{{APP_NAME}}.rule=Host(`{{APP_SUBDOMAIN}}.{{APP_DOMAIN}}`)\n      - traefik.http.routers.{{APP_NAME}}.entrypoints=web\n      - traefik.http.services.{{APP_NAME}}.loadbalancer.server.port=5000\n\nvolumes:\n  {{APP_NAME}}_config:\n  {{APP_NAME}}_data:\n\nnetworks:\n  proxy:\n    external: true\n"
+    },
+    {
+      "type": 3,
+      "title": "Nextcloud Behind Traefik",
+      "name": "nextcloud-traefik",
+      "description": "Single-container Nextcloud behind Traefik. Review before production use.",
+      "categories": [
+        "LinuxServer",
+        "Traefik"
+      ],
+      "platform": "linux",
+      "logo": "https://raw.githubusercontent.com/linuxserver/docker-templates/master/linuxserver.io/img/nextcloud-icon.png",
+      "env": [
+        {
+          "name": "APP_NAME",
+          "label": "App name",
+          "default": "nextcloud"
+        },
+        {
+          "name": "APP_SUBDOMAIN",
+          "label": "Subdomain",
+          "default": "nextcloud"
+        },
+        {
+          "name": "APP_DOMAIN",
+          "label": "Domain",
+          "default": "example.com"
+        },
+        {
+          "name": "APP_TZ",
+          "label": "Timezone",
+          "default": "America/Puerto_Rico"
+        }
+      ],
+      "stackfile": "services:\n  {{APP_NAME}}:\n    image: lscr.io/linuxserver/nextcloud:latest\n    container_name: {{APP_NAME}}\n    restart: unless-stopped\n    environment:\n      TZ: {{APP_TZ}}\n    volumes:\n      - {{APP_NAME}}_config:/config\n      - {{APP_NAME}}_data:/data\n    networks:\n      - proxy\n    labels:\n      - traefik.enable=true\n      - traefik.docker.network=proxy\n      - traefik.http.routers.{{APP_NAME}}.rule=Host(`{{APP_SUBDOMAIN}}.{{APP_DOMAIN}}`)\n      - traefik.http.routers.{{APP_NAME}}.entrypoints=web\n      - traefik.http.services.{{APP_NAME}}.loadbalancer.server.port=80\n\nvolumes:\n  {{APP_NAME}}_config:\n  {{APP_NAME}}_data:\n\nnetworks:\n  proxy:\n    external: true\n"
+    },
+    {
+      "type": 3,
+      "title": "Openssh Server Behind Traefik",
+      "name": "openssh-server-traefik",
+      "description": "openssh-server is a sandboxed environment that allows ssh access without giving keys to the entire server. Giving ssh access via private key often means giving full access to the server. This container creates a limited and sandboxed environment that others can ssh into. The users only have access to the folders mapped and the processes running inside this container.",
+      "categories": [
+        "LinuxServer",
+        "Traefik"
+      ],
+      "platform": "linux",
+      "logo": "https://raw.githubusercontent.com/linuxserver/docker-templates/master/linuxserver.io/img/openssh-server-logo.png",
+      "env": [
+        {
+          "name": "APP_NAME",
+          "label": "App name",
+          "default": "openssh-server"
+        },
+        {
+          "name": "APP_SUBDOMAIN",
+          "label": "Subdomain",
+          "default": "openssh-server"
+        },
+        {
+          "name": "APP_DOMAIN",
+          "label": "Domain",
+          "default": "example.com"
+        },
+        {
+          "name": "APP_TZ",
+          "label": "Timezone",
+          "default": "America/Puerto_Rico"
+        },
+        {
+          "name": "PUBLIC_KEY",
+          "label": "Optional ssh public key, which will automatically be added to authorized_keys.",
+          "default": "yourpublickey"
+        },
+        {
+          "name": "PUBLIC_KEY_FILE",
+          "label": "Optionally specify a file containing the public key (works with docker secrets).",
+          "default": "/path/to/file"
+        },
+        {
+          "name": "PUBLIC_KEY_DIR",
+          "label": "Optionally specify a directory containing the public keys (works with docker secrets).",
+          "default": "/path/to/directory/containing/_only_/pubkeys"
+        },
+        {
+          "name": "PUBLIC_KEY_URL",
+          "label": "Optionally specify a URL containing the public key.",
+          "default": "https://github.com/username.keys"
+        },
+        {
+          "name": "SUDO_ACCESS",
+          "label": "Set to `true` to allow `linuxserver.io`, the ssh user, sudo access. Without `USER_PASSWORD` set, this will allow passwordless sudo access.",
+          "default": "false"
+        },
+        {
+          "name": "PASSWORD_ACCESS",
+          "label": "Set to `true` to allow user/password ssh access. You will want to set `USER_PASSWORD` or `USER_PASSWORD_FILE` as well.",
+          "default": "false"
+        },
+        {
+          "name": "USER_PASSWORD",
+          "label": "Optionally set a sudo password for `linuxserver.io`, the ssh user. If this or `USER_PASSWORD_FILE` are not set but `SUDO_ACCESS` is set to true, the user will have passwordless sudo access.",
+          "default": "password"
+        },
+        {
+          "name": "USER_PASSWORD_FILE",
+          "label": "Optionally specify a file that contains the password. This setting supersedes the `USER_PASSWORD` option (works with docker secrets).",
+          "default": "/path/to/file"
+        },
+        {
+          "name": "USER_NAME",
+          "label": "Optionally specify a user name (Default:`linuxserver.io`)",
+          "default": "linuxserver.io"
+        },
+        {
+          "name": "LOG_STDOUT",
+          "label": "Set to `true` to log to stdout instead of file.",
+          "default": ""
+        }
+      ],
+      "stackfile": "services:\n  {{APP_NAME}}:\n    image: lscr.io/linuxserver/openssh-server:latest\n    container_name: {{APP_NAME}}\n    restart: unless-stopped\n    environment:\n      TZ: {{APP_TZ}}\n      PUBLIC_KEY: {{PUBLIC_KEY}}\n      PUBLIC_KEY_FILE: {{PUBLIC_KEY_FILE}}\n      PUBLIC_KEY_DIR: {{PUBLIC_KEY_DIR}}\n      PUBLIC_KEY_URL: {{PUBLIC_KEY_URL}}\n      SUDO_ACCESS: {{SUDO_ACCESS}}\n      PASSWORD_ACCESS: {{PASSWORD_ACCESS}}\n      USER_PASSWORD: {{USER_PASSWORD}}\n      USER_PASSWORD_FILE: {{USER_PASSWORD_FILE}}\n      USER_NAME: {{USER_NAME}}\n      LOG_STDOUT: {{LOG_STDOUT}}\n    volumes:\n      - {{APP_NAME}}_config:/config\n    networks:\n      - proxy\n    labels:\n      - traefik.enable=true\n      - traefik.docker.network=proxy\n      - traefik.http.routers.{{APP_NAME}}.rule=Host(`{{APP_SUBDOMAIN}}.{{APP_DOMAIN}}`)\n      - traefik.http.routers.{{APP_NAME}}.entrypoints=web\n      - traefik.http.services.{{APP_NAME}}.loadbalancer.server.port=2222\n\nvolumes:\n  {{APP_NAME}}_config:\n\nnetworks:\n  proxy:\n    external: true\n"
+    },
+    {
+      "type": 3,
+      "title": "Qbittorrent Behind Traefik",
+      "name": "qbittorrent-traefik",
+      "description": "The qbittorrent project aims to provide an open-source software alternative to µTorrent. qBittorrent is based on the Qt toolkit and libtorrent-rasterbar library.",
+      "categories": [
+        "LinuxServer",
+        "Traefik"
+      ],
+      "platform": "linux",
+      "logo": "https://github.com/linuxserver/docker-templates/raw/master/linuxserver.io/img/qbittorrent-icon.png",
+      "env": [
+        {
+          "name": "APP_NAME",
+          "label": "App name",
+          "default": "qbittorrent"
+        },
+        {
+          "name": "APP_SUBDOMAIN",
+          "label": "Subdomain",
+          "default": "qbittorrent"
+        },
+        {
+          "name": "APP_DOMAIN",
+          "label": "Domain",
+          "default": "example.com"
+        },
+        {
+          "name": "APP_TZ",
+          "label": "Timezone",
+          "default": "America/Puerto_Rico"
+        },
+        {
+          "name": "WEBUI_PORT",
+          "label": "for changing the port of the web UI, see below for explanation",
+          "default": "8080"
+        },
+        {
+          "name": "TORRENTING_PORT",
+          "label": "for changing the port of tcp/udp connection, see below for explanation",
+          "default": "6881"
+        }
+      ],
+      "stackfile": "services:\n  {{APP_NAME}}:\n    image: lscr.io/linuxserver/qbittorrent:latest\n    container_name: {{APP_NAME}}\n    restart: unless-stopped\n    environment:\n      TZ: {{APP_TZ}}\n      WEBUI_PORT: {{WEBUI_PORT}}\n      TORRENTING_PORT: {{TORRENTING_PORT}}\n    volumes:\n      - {{APP_NAME}}_config:/config\n      - {{APP_NAME}}_downloads:/downloads\n    networks:\n      - proxy\n    labels:\n      - traefik.enable=true\n      - traefik.docker.network=proxy\n      - traefik.http.routers.{{APP_NAME}}.rule=Host(`{{APP_SUBDOMAIN}}.{{APP_DOMAIN}}`)\n      - traefik.http.routers.{{APP_NAME}}.entrypoints=web\n      - traefik.http.services.{{APP_NAME}}.loadbalancer.server.port=8080\n\nvolumes:\n  {{APP_NAME}}_config:\n  {{APP_NAME}}_downloads:\n\nnetworks:\n  proxy:\n    external: true\n"
+    },
+    {
+      "type": 3,
+      "title": "Radarr Behind Traefik",
+      "name": "radarr-traefik",
+      "description": "radarr - A fork of Sonarr to work with movies à la Couchpotato.",
+      "categories": [
+        "LinuxServer",
+        "Traefik"
+      ],
+      "platform": "linux",
+      "logo": "https://raw.githubusercontent.com/linuxserver/docker-templates/master/linuxserver.io/img/radarr.png",
+      "env": [
+        {
+          "name": "APP_NAME",
+          "label": "App name",
+          "default": "radarr"
+        },
+        {
+          "name": "APP_SUBDOMAIN",
+          "label": "Subdomain",
+          "default": "radarr"
+        },
+        {
+          "name": "APP_DOMAIN",
+          "label": "Domain",
+          "default": "example.com"
+        },
+        {
+          "name": "APP_TZ",
+          "label": "Timezone",
+          "default": "America/Puerto_Rico"
+        }
+      ],
+      "stackfile": "services:\n  {{APP_NAME}}:\n    image: lscr.io/linuxserver/radarr:latest\n    container_name: {{APP_NAME}}\n    restart: unless-stopped\n    environment:\n      TZ: {{APP_TZ}}\n    volumes:\n      - {{APP_NAME}}_config:/config\n      - {{APP_NAME}}_movies:/movies\n      - {{APP_NAME}}_downloads:/downloads\n    networks:\n      - proxy\n    labels:\n      - traefik.enable=true\n      - traefik.docker.network=proxy\n      - traefik.http.routers.{{APP_NAME}}.rule=Host(`{{APP_SUBDOMAIN}}.{{APP_DOMAIN}}`)\n      - traefik.http.routers.{{APP_NAME}}.entrypoints=web\n      - traefik.http.services.{{APP_NAME}}.loadbalancer.server.port=7878\n\nvolumes:\n  {{APP_NAME}}_config:\n  {{APP_NAME}}_movies:\n  {{APP_NAME}}_downloads:\n\nnetworks:\n  proxy:\n    external: true\n"
+    },
+    {
+      "type": 3,
+      "title": "Sonarr Behind Traefik",
+      "name": "sonarr-traefik",
+      "description": "sonarr (formerly NZBdrone) is a PVR for usenet and bittorrent users. It can monitor multiple RSS feeds for new episodes of your favorite shows and will grab, sort and rename them. It can also be configured to automatically upgrade the quality of files already downloaded when a better quality format becomes available.",
+      "categories": [
+        "LinuxServer",
+        "Traefik"
+      ],
+      "platform": "linux",
+      "logo": "https://raw.githubusercontent.com/linuxserver/docker-templates/master/linuxserver.io/img/sonarr-banner.png",
+      "env": [
+        {
+          "name": "APP_NAME",
+          "label": "App name",
+          "default": "sonarr"
+        },
+        {
+          "name": "APP_SUBDOMAIN",
+          "label": "Subdomain",
+          "default": "sonarr"
+        },
+        {
+          "name": "APP_DOMAIN",
+          "label": "Domain",
+          "default": "example.com"
+        },
+        {
+          "name": "APP_TZ",
+          "label": "Timezone",
+          "default": "America/Puerto_Rico"
+        }
+      ],
+      "stackfile": "services:\n  {{APP_NAME}}:\n    image: lscr.io/linuxserver/sonarr:latest\n    container_name: {{APP_NAME}}\n    restart: unless-stopped\n    environment:\n      TZ: {{APP_TZ}}\n    volumes:\n      - {{APP_NAME}}_config:/config\n      - {{APP_NAME}}_tv:/tv\n      - {{APP_NAME}}_downloads:/downloads\n    networks:\n      - proxy\n    labels:\n      - traefik.enable=true\n      - traefik.docker.network=proxy\n      - traefik.http.routers.{{APP_NAME}}.rule=Host(`{{APP_SUBDOMAIN}}.{{APP_DOMAIN}}`)\n      - traefik.http.routers.{{APP_NAME}}.entrypoints=web\n      - traefik.http.services.{{APP_NAME}}.loadbalancer.server.port=8989\n\nvolumes:\n  {{APP_NAME}}_config:\n  {{APP_NAME}}_tv:\n  {{APP_NAME}}_downloads:\n\nnetworks:\n  proxy:\n    external: true\n"
+    },
+    {
+      "type": 3,
+      "title": "Tautulli Behind Traefik",
+      "name": "tautulli-traefik",
+      "description": "tautulli is a python based web application for monitoring, analytics and notifications for Plex Media Server.",
+      "categories": [
+        "LinuxServer",
+        "Traefik"
+      ],
+      "platform": "linux",
+      "logo": "https://raw.githubusercontent.com/linuxserver/docker-templates/master/linuxserver.io/img/tautulli-icon.png",
+      "env": [
+        {
+          "name": "APP_NAME",
+          "label": "App name",
+          "default": "tautulli"
+        },
+        {
+          "name": "APP_SUBDOMAIN",
+          "label": "Subdomain",
+          "default": "tautulli"
+        },
+        {
+          "name": "APP_DOMAIN",
+          "label": "Domain",
+          "default": "example.com"
+        },
+        {
+          "name": "APP_TZ",
+          "label": "Timezone",
+          "default": "America/Puerto_Rico"
+        }
+      ],
+      "stackfile": "services:\n  {{APP_NAME}}:\n    image: lscr.io/linuxserver/tautulli:latest\n    container_name: {{APP_NAME}}\n    restart: unless-stopped\n    environment:\n      TZ: {{APP_TZ}}\n    volumes:\n      - {{APP_NAME}}_config:/config\n    networks:\n      - proxy\n    labels:\n      - traefik.enable=true\n      - traefik.docker.network=proxy\n      - traefik.http.routers.{{APP_NAME}}.rule=Host(`{{APP_SUBDOMAIN}}.{{APP_DOMAIN}}`)\n      - traefik.http.routers.{{APP_NAME}}.entrypoints=web\n      - traefik.http.services.{{APP_NAME}}.loadbalancer.server.port=8181\n\nvolumes:\n  {{APP_NAME}}_config:\n\nnetworks:\n  proxy:\n    external: true\n"
     }
   ]
 }
