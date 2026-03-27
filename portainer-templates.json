@@ -121,6 +121,105 @@
         }
       ],
       "stackfile": "services:\n  {{APP_NAME}}:\n    image: nginx:alpine\n    container_name: {{APP_NAME}}\n    restart: unless-stopped\n    networks:\n      - proxy\n    environment:\n      TZ: {{APP_TZ}}\n    volumes:\n      - {{APP_NAME}}_html:/usr/share/nginx/html\n    labels:\n      - traefik.enable=true\n      - traefik.docker.network=proxy\n      - traefik.http.routers.{{APP_NAME}}.rule=Host(`{{APP_HOSTNAME}}`)\n      - traefik.http.routers.{{APP_NAME}}.entrypoints=web\n      - traefik.http.services.{{APP_NAME}}.loadbalancer.server.port=80\n\nvolumes:\n  {{APP_NAME}}_html:\n\nnetworks:\n  proxy:\n    external: true\n"
+    },
+    {
+      "type": 3,
+      "title": "Calibre Behind Traefik",
+      "name": "calibre-traefik",
+      "description": "Calibre published through Traefik with separate domain and subdomain inputs.",
+      "categories": ["Books", "Calibre", "Traefik"],
+      "platform": "linux",
+      "logo": "https://raw.githubusercontent.com/linuxserver/docker-templates/master/linuxserver.io/img/calibre-logo.png",
+      "env": [
+        {
+          "name": "APP_NAME",
+          "label": "Container name",
+          "default": "calibre"
+        },
+        {
+          "name": "APP_SUBDOMAIN",
+          "label": "Subdomain",
+          "default": "calibre"
+        },
+        {
+          "name": "APP_DOMAIN",
+          "label": "Domain",
+          "default": "karimar.lat"
+        },
+        {
+          "name": "APP_TZ",
+          "label": "Timezone",
+          "default": "America/Puerto_Rico"
+        },
+        {
+          "name": "APP_PUID",
+          "label": "PUID",
+          "default": "1000"
+        },
+        {
+          "name": "APP_PGID",
+          "label": "PGID",
+          "default": "1000"
+        },
+        {
+          "name": "APP_USER",
+          "label": "Calibre username",
+          "default": "admin"
+        },
+        {
+          "name": "APP_PASSWORD",
+          "label": "Calibre password",
+          "default": "ChangeMe123!"
+        }
+      ],
+      "stackfile": "services:\n  {{APP_NAME}}:\n    image: lscr.io/linuxserver/calibre:latest\n    container_name: {{APP_NAME}}\n    restart: unless-stopped\n    environment:\n      PUID: {{APP_PUID}}\n      PGID: {{APP_PGID}}\n      TZ: {{APP_TZ}}\n      CUSTOM_USER: {{APP_USER}}\n      PASSWORD: {{APP_PASSWORD}}\n    volumes:\n      - {{APP_NAME}}_config:/config\n      - {{APP_NAME}}_library:/books\n    networks:\n      - proxy\n    labels:\n      - traefik.enable=true\n      - traefik.docker.network=proxy\n      - traefik.http.routers.{{APP_NAME}}.rule=Host(`{{APP_SUBDOMAIN}}.{{APP_DOMAIN}}`)\n      - traefik.http.routers.{{APP_NAME}}.entrypoints=web\n      - traefik.http.services.{{APP_NAME}}.loadbalancer.server.port=8080\n\nvolumes:\n  {{APP_NAME}}_config:\n  {{APP_NAME}}_library:\n\nnetworks:\n  proxy:\n    external: true\n"
+    },
+    {
+      "type": 3,
+      "title": "Calibre-Web Behind Traefik",
+      "name": "calibreweb-traefik",
+      "description": "Calibre-Web published through Traefik with separate domain and subdomain inputs.",
+      "categories": ["Books", "Calibre-Web", "Traefik"],
+      "platform": "linux",
+      "logo": "https://raw.githubusercontent.com/linuxserver/docker-templates/master/linuxserver.io/img/calibre-web-logo.png",
+      "env": [
+        {
+          "name": "APP_NAME",
+          "label": "Container name",
+          "default": "calibre-web"
+        },
+        {
+          "name": "APP_SUBDOMAIN",
+          "label": "Subdomain",
+          "default": "calibreweb"
+        },
+        {
+          "name": "APP_DOMAIN",
+          "label": "Domain",
+          "default": "karimar.lat"
+        },
+        {
+          "name": "APP_TZ",
+          "label": "Timezone",
+          "default": "America/Puerto_Rico"
+        },
+        {
+          "name": "APP_PUID",
+          "label": "PUID",
+          "default": "1000"
+        },
+        {
+          "name": "APP_PGID",
+          "label": "PGID",
+          "default": "1000"
+        },
+        {
+          "name": "LIBRARY_VOLUME",
+          "label": "Library volume name",
+          "default": "calibre_library"
+        }
+      ],
+      "stackfile": "services:\n  {{APP_NAME}}:\n    image: lscr.io/linuxserver/calibre-web:latest\n    container_name: {{APP_NAME}}\n    restart: unless-stopped\n    environment:\n      PUID: {{APP_PUID}}\n      PGID: {{APP_PGID}}\n      TZ: {{APP_TZ}}\n    volumes:\n      - {{APP_NAME}}_config:/config\n      - {{LIBRARY_VOLUME}}:/books\n    networks:\n      - proxy\n    labels:\n      - traefik.enable=true\n      - traefik.docker.network=proxy\n      - traefik.http.routers.{{APP_NAME}}.rule=Host(`{{APP_SUBDOMAIN}}.{{APP_DOMAIN}}`)\n      - traefik.http.routers.{{APP_NAME}}.entrypoints=web\n      - traefik.http.services.{{APP_NAME}}.loadbalancer.server.port=8083\n\nvolumes:\n  {{APP_NAME}}_config:\n  {{LIBRARY_VOLUME}}:\n    external: true\n\nnetworks:\n  proxy:\n    external: true\n"
     }
   ]
 }
