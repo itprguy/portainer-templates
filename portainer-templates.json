@@ -1,0 +1,126 @@
+{
+  "version": "2",
+  "templates": [
+    {
+      "type": 3,
+      "title": "Generic App Behind Traefik",
+      "name": "generic-traefik-app",
+      "description": "Reusable stack template for a single web app published through Traefik on the external proxy network.",
+      "categories": ["Generic", "Web", "Traefik"],
+      "platform": "linux",
+      "logo": "https://raw.githubusercontent.com/portainer/portainer/develop/app/assets/images/portainer.svg",
+      "env": [
+        {
+          "name": "APP_NAME",
+          "label": "App name",
+          "default": "myapp"
+        },
+        {
+          "name": "APP_IMAGE",
+          "label": "Docker image",
+          "default": "nginx:alpine"
+        },
+        {
+          "name": "APP_HOSTNAME",
+          "label": "Public hostname",
+          "default": "myapp.karimar.lat"
+        },
+        {
+          "name": "APP_INTERNAL_PORT",
+          "label": "Internal container port",
+          "default": "80"
+        },
+        {
+          "name": "APP_TZ",
+          "label": "Timezone",
+          "default": "America/Puerto_Rico"
+        }
+      ],
+      "stackfile": "services:\n  {{APP_NAME}}:\n    image: {{APP_IMAGE}}\n    container_name: {{APP_NAME}}\n    restart: unless-stopped\n    networks:\n      - proxy\n    environment:\n      TZ: {{APP_TZ}}\n    volumes:\n      - {{APP_NAME}}_data:/data\n    labels:\n      - traefik.enable=true\n      - traefik.docker.network=proxy\n      - traefik.http.routers.{{APP_NAME}}.rule=Host(`{{APP_HOSTNAME}}`)\n      - traefik.http.routers.{{APP_NAME}}.entrypoints=web\n      - traefik.http.services.{{APP_NAME}}.loadbalancer.server.port={{APP_INTERNAL_PORT}}\n\nvolumes:\n  {{APP_NAME}}_data:\n\nnetworks:\n  proxy:\n    external: true\n"
+    },
+    {
+      "type": 3,
+      "title": "Generic App Plus MariaDB Behind Traefik",
+      "name": "generic-traefik-mariadb",
+      "description": "Reusable stack template for an app with a MariaDB backend and Traefik exposure.",
+      "categories": ["Generic", "Database", "MariaDB", "Traefik"],
+      "platform": "linux",
+      "logo": "https://raw.githubusercontent.com/portainer/portainer/develop/app/assets/images/portainer.svg",
+      "env": [
+        {
+          "name": "APP_NAME",
+          "label": "App name",
+          "default": "myapp"
+        },
+        {
+          "name": "APP_IMAGE",
+          "label": "Docker image",
+          "default": "wordpress:php8.2-apache"
+        },
+        {
+          "name": "APP_HOSTNAME",
+          "label": "Public hostname",
+          "default": "myapp.karimar.lat"
+        },
+        {
+          "name": "APP_INTERNAL_PORT",
+          "label": "Internal container port",
+          "default": "80"
+        },
+        {
+          "name": "APP_DB_NAME",
+          "label": "Database name",
+          "default": "appdb"
+        },
+        {
+          "name": "APP_DB_USER",
+          "label": "Database user",
+          "default": "appuser"
+        },
+        {
+          "name": "APP_DB_PASSWORD",
+          "label": "Database password",
+          "default": "ChangeMe123!"
+        },
+        {
+          "name": "APP_DB_ROOT_PASSWORD",
+          "label": "MariaDB root password",
+          "default": "ChangeMeRoot123!"
+        },
+        {
+          "name": "APP_TZ",
+          "label": "Timezone",
+          "default": "America/Puerto_Rico"
+        }
+      ],
+      "stackfile": "services:\n  {{APP_NAME}}-db:\n    image: mariadb:11\n    container_name: {{APP_NAME}}-db\n    restart: unless-stopped\n    environment:\n      MARIADB_DATABASE: {{APP_DB_NAME}}\n      MARIADB_USER: {{APP_DB_USER}}\n      MARIADB_PASSWORD: {{APP_DB_PASSWORD}}\n      MARIADB_ROOT_PASSWORD: {{APP_DB_ROOT_PASSWORD}}\n      MARIADB_USER_HOST: \"%\"\n    volumes:\n      - {{APP_NAME}}_db_data:/var/lib/mysql\n    networks:\n      - internal\n\n  {{APP_NAME}}:\n    image: {{APP_IMAGE}}\n    container_name: {{APP_NAME}}\n    restart: unless-stopped\n    depends_on:\n      - {{APP_NAME}}-db\n    networks:\n      - internal\n      - proxy\n    environment:\n      TZ: {{APP_TZ}}\n      WORDPRESS_DB_HOST: {{APP_NAME}}-db:3306\n      WORDPRESS_DB_NAME: {{APP_DB_NAME}}\n      WORDPRESS_DB_USER: {{APP_DB_USER}}\n      WORDPRESS_DB_PASSWORD: {{APP_DB_PASSWORD}}\n    volumes:\n      - {{APP_NAME}}_app_data:/var/www/html\n    labels:\n      - traefik.enable=true\n      - traefik.docker.network=proxy\n      - traefik.http.routers.{{APP_NAME}}.rule=Host(`{{APP_HOSTNAME}}`)\n      - traefik.http.routers.{{APP_NAME}}.entrypoints=web\n      - traefik.http.services.{{APP_NAME}}.loadbalancer.server.port={{APP_INTERNAL_PORT}}\n\nvolumes:\n  {{APP_NAME}}_db_data:\n  {{APP_NAME}}_app_data:\n\nnetworks:\n  internal:\n  proxy:\n    external: true\n"
+    },
+    {
+      "type": 3,
+      "title": "Static Site Behind Traefik",
+      "name": "static-site-traefik",
+      "description": "Reusable stack template for a static site or simple nginx container behind Traefik.",
+      "categories": ["Static", "Nginx", "Traefik"],
+      "platform": "linux",
+      "logo": "https://raw.githubusercontent.com/portainer/portainer/develop/app/assets/images/portainer.svg",
+      "env": [
+        {
+          "name": "APP_NAME",
+          "label": "App name",
+          "default": "static-site"
+        },
+        {
+          "name": "APP_HOSTNAME",
+          "label": "Public hostname",
+          "default": "site.karimar.lat"
+        },
+        {
+          "name": "APP_TZ",
+          "label": "Timezone",
+          "default": "America/Puerto_Rico"
+        }
+      ],
+      "stackfile": "services:\n  {{APP_NAME}}:\n    image: nginx:alpine\n    container_name: {{APP_NAME}}\n    restart: unless-stopped\n    networks:\n      - proxy\n    environment:\n      TZ: {{APP_TZ}}\n    volumes:\n      - {{APP_NAME}}_html:/usr/share/nginx/html\n    labels:\n      - traefik.enable=true\n      - traefik.docker.network=proxy\n      - traefik.http.routers.{{APP_NAME}}.rule=Host(`{{APP_HOSTNAME}}`)\n      - traefik.http.routers.{{APP_NAME}}.entrypoints=web\n      - traefik.http.services.{{APP_NAME}}.loadbalancer.server.port=80\n\nvolumes:\n  {{APP_NAME}}_html:\n\nnetworks:\n  proxy:\n    external: true\n"
+    }
+  ]
+}
