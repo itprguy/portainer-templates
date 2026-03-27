@@ -220,6 +220,38 @@
         }
       ],
       "stackfile": "services:\n  {{APP_NAME}}:\n    image: lscr.io/linuxserver/calibre-web:latest\n    container_name: {{APP_NAME}}\n    restart: unless-stopped\n    environment:\n      PUID: {{APP_PUID}}\n      PGID: {{APP_PGID}}\n      TZ: {{APP_TZ}}\n    volumes:\n      - {{APP_NAME}}_config:/config\n      - {{LIBRARY_VOLUME}}:/books\n    networks:\n      - proxy\n    labels:\n      - traefik.enable=true\n      - traefik.docker.network=proxy\n      - traefik.http.routers.{{APP_NAME}}.rule=Host(`{{APP_SUBDOMAIN}}.{{APP_DOMAIN}}`)\n      - traefik.http.routers.{{APP_NAME}}.entrypoints=web\n      - traefik.http.services.{{APP_NAME}}.loadbalancer.server.port=8083\n\nvolumes:\n  {{APP_NAME}}_config:\n  {{LIBRARY_VOLUME}}:\n    external: true\n\nnetworks:\n  proxy:\n    external: true\n"
+    },
+    {
+      "type": 3,
+      "title": "Ghost Behind Traefik",
+      "name": "ghost-traefik",
+      "description": "Ghost blog behind Traefik with separate subdomain and domain inputs. Uses SQLite for simple standalone deployment.",
+      "categories": ["Ghost", "Blog", "CMS", "Traefik"],
+      "platform": "linux",
+      "logo": "https://ghost.org/images/logos/ghost-logo-orb.png",
+      "env": [
+        {
+          "name": "APP_NAME",
+          "label": "Container name",
+          "default": "ghost"
+        },
+        {
+          "name": "APP_SUBDOMAIN",
+          "label": "Subdomain",
+          "default": "ghost"
+        },
+        {
+          "name": "APP_DOMAIN",
+          "label": "Domain",
+          "default": "karimar.lat"
+        },
+        {
+          "name": "APP_TZ",
+          "label": "Timezone",
+          "default": "America/Puerto_Rico"
+        }
+      ],
+      "stackfile": "services:\n  {{APP_NAME}}:\n    image: ghost:latest\n    container_name: {{APP_NAME}}\n    restart: unless-stopped\n    environment:\n      TZ: {{APP_TZ}}\n      url: https://{{APP_SUBDOMAIN}}.{{APP_DOMAIN}}\n    volumes:\n      - {{APP_NAME}}_data:/var/lib/ghost/content\n    networks:\n      - proxy\n    labels:\n      - traefik.enable=true\n      - traefik.docker.network=proxy\n      - traefik.http.routers.{{APP_NAME}}.rule=Host(`{{APP_SUBDOMAIN}}.{{APP_DOMAIN}}`)\n      - traefik.http.routers.{{APP_NAME}}.entrypoints=web\n      - traefik.http.services.{{APP_NAME}}.loadbalancer.server.port=2368\n\nvolumes:\n  {{APP_NAME}}_data:\n\nnetworks:\n  proxy:\n    external: true\n"
     }
   ]
 }
